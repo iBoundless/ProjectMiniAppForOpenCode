@@ -28,3 +28,4 @@ playwright-report/
 # OS and logs
 .DS_Store
 *.log
+*.tsbuildinfo

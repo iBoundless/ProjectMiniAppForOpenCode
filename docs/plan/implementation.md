@@ -579,6 +579,16 @@ class WebSettings(BaseModel):
 
 Критерий: `npm run build` и `npm test` проходят.
 
+Выполнено:
+
+- [x] Vite + React 19 + TypeScript, Vitest (jsdom), ESLint (flat config);
+- [x] `vite.config.ts`: proxy `/api`, `/login`, `/health` на
+  `http://127.0.0.1:8080` (переопределяется `MINI_APP_BACKEND`);
+- [x] `styles/global.css`: тема из `--tg-theme-*` с запасными цветами,
+  светлая и темная схема, safe area;
+- [x] `auth/telegram.ts`: `Telegram.WebApp.ready()` и `expand()`, схема;
+- [x] `npm test`, `npm run build`, `npm run lint` проходят.
+
 ---
 
 ## Этап 13. Frontend: экраны

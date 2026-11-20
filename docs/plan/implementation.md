@@ -662,6 +662,20 @@ class WebSettings(BaseModel):
 Критерий: Lighthouse PWA без критических ошибок, приложение
 открывается с домашнего экрана.
 
+Выполнено:
+
+- [x] `public/manifest.webmanifest`: name, short_name, `display: standalone`,
+  start_url, тема, иконки 192/512 (any и maskable) и SVG;
+- [x] `public/sw.js`: кэш только статики (`/assets/*`, `/icons/*` cache-first,
+  навигация network-first с офлайн-копией `/`), `/api/*`, `/login`,
+  `/health`, SSE и не-GET не перехватываются; старые кэши удаляются;
+- [x] регистрация SW в production и `registration.update()` при
+  `visibilitychange`; списки и SSE обновляются при возврате из фона;
+- [x] `apple-touch-icon` 180x180, `viewport-fit=cover` и safe area в CSS;
+  иконки генерирует `scripts/make_icons.py` (без зависимостей);
+- [x] `src/app/pwa.test.ts` проверяет manifest, SW и index.html;
+  Lighthouse и установка на iPhone - в живом тестировании (этап 19).
+
 ---
 
 ## Этап 15. Сборка и раздача

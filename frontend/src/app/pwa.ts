@@ -1,4 +1,4 @@
-/** Service worker только вне Telegram и только в production-сборке. */
+/** Service worker только в production-сборке; обновление при возврате из фона. */
 export function registerServiceWorker(): void {
   if (!import.meta.env.PROD || !("serviceWorker" in navigator)) return;
   window.addEventListener("load", () => {

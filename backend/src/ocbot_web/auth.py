@@ -219,6 +219,42 @@ class AuthStore:
         await self._db.execute("DELETE FROM login_tokens WHERE expires_at <= ?", (now,))
         await self._db.commit()
 
+    async def create_login_token(self, user_id: int, ttl: int = LOGIN_TOKEN_TTL) -> str:
+        """Одноразовый токен для входа из Safari: в базе только хеш."""
+        token = new_token()
+        now = self.now()
+        await self._db.execute(
+            "INSERT INTO login_tokens(token_hash, user_id, created_at, expires_at)"
+            " VALUES(?, ?, ?, ?)",
+            (hash_token(token), int(user_id), now, now + ttl),
+        )
+        await self._db.commit()
+        return token
+
+    async def consume_login_token(self, token: str | None) -> int | None:
+        """Погасить токен и вернуть user_id; None, если токен неизвестен,
+        просрочен или уже использован."""
+        if not token or len(token) > 256:
+            return None
+        now = self.now()
+        digest = hash_token(token)
+        cursor = await self._db.execute(
+            "UPDATE login_tokens SET used_at = ?"
+            " WHERE token_hash = ? AND used_at IS NULL AND expires_at > ?",
+            (now, digest, now),
+        )
+        changed = cursor.rowcount
+        await cursor.close()
+        await self._db.commit()
+        if changed != 1:
+            return None
+        cursor = await self._db.execute(
+            "SELECT user_id FROM login_tokens WHERE token_hash = ?", (digest,)
+        )
+        row = await cursor.fetchone()
+        await cursor.close()
+        return int(row[0]) if row else None
+
     async def count(self, table: str) -> int:
         if table not in ("auth_sessions", "login_tokens"):
             raise ValueError(table)

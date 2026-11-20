@@ -67,7 +67,9 @@ async def api(settings: WebSettings):
     clients: list[TestClient] = []
 
     async def factory(**kwargs) -> TestClient:
+        # Как в main.py: access log aiohttp выключен, он пишет query string.
         client = TestClient(TestServer(create_app(settings, **kwargs)))
+        await client.server.start_server(access_log=None)
         await client.start_server()
         clients.append(client)
         return client

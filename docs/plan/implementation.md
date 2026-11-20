@@ -318,6 +318,15 @@ class WebSettings(BaseModel):
 
 Критерий: тесты зеленые.
 
+Выполнено:
+
+- [x] `AuthStore.create_login_token` / `consume_login_token`: хеш SHA-256,
+  TTL 5 минут, атомарное гашение через `used_at`;
+- [x] `POST /api/auth/login-token`: для вошедшего пользователя или для
+  служебного вызова с `127.0.0.1` без `Origin` и `X-Forwarded-For`;
+- [x] `GET /login?t=...`: cookie и редирект 302 на `/`, иначе HTML 401;
+- [x] `tests/test_login_tokens.py` зеленый, токен не попадает в логи.
+
 ---
 
 ## Этап 6. API сессий

@@ -146,6 +146,15 @@ uv run python -c "import ocbot, ocbot_web; print(ocbot.__file__)"
 
 Критерий: импорт работает, `uv.lock` создан.
 
+Выполнено:
+
+- [x] `backend/pyproject.toml`, зависимость `ocbot` закреплена на коммите
+  `cbec8b9` (`tool.hatch.metadata.allow-direct-references`);
+- [x] `backend/src/ocbot_web/__init__.py` с `__version__`;
+- [x] `backend/tests/test_package.py`: импорт `ocbot_web` и модулей `ocbot`,
+  которые использует дизайн;
+- [x] `uv.lock` создан, `uv run pytest -q` зеленый.
+
 ---
 
 ## Этап 2. Конфигурация backend

@@ -281,6 +281,16 @@ class WebSettings(BaseModel):
 
 Критерий: тесты зеленые, в логах нет `init_data`.
 
+Выполнено:
+
+- [x] `validate_init_data`: HMAC-SHA256, сравнение за постоянное время,
+  `auth_date` с допуском 60 секунд на часы, allowlist;
+- [x] `AuthStore` (`mini_app.db`, WAL, права 600): только SHA-256 хеши;
+- [x] cookie `oc_panel_session`: HttpOnly, Secure, SameSite=Lax, TTL;
+- [x] `POST /api/auth/telegram`, `GET /api/auth/me`, `POST /api/auth/logout`,
+  `login_required`; пользователь, убранный из allowlist, получает 403;
+- [x] `tests/test_auth.py` зеленый, `init_data` в логи не попадает.
+
 ---
 
 ## Этап 5. Одноразовые ссылки для PWA

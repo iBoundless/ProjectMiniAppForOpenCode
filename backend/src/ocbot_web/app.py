@@ -5,7 +5,8 @@ from __future__ import annotations
 import asyncio
 import logging
 import time
-from collections.abc import Awaitable, Callable
+from collections.abc import AsyncIterator, Awaitable, Callable
+from typing import Any
 from urllib.parse import urlsplit
 
 from aiohttp import web
@@ -13,6 +14,7 @@ from ocbot.opencode import ApiError as OpencodeApiError
 from ocbot.opencode import OpencodeUnavailable, SessionNotFound
 
 from . import __version__
+from .auth import AuthStore
 from .config import WebSettings
 from .errors import (
     DEFAULT_MESSAGES,
@@ -21,7 +23,8 @@ from .errors import (
     error_response,
     json_response,
 )
-from .keys import SETTINGS
+from .keys import AUTH, SETTINGS
+from .routes import setup_routes
 
 log = logging.getLogger(__name__)
 
@@ -121,8 +124,34 @@ async def health(request: web.Request) -> web.Response:
     )
 
 
+def _resources(
+    auth: Any | None,
+) -> Callable[[web.Application], AsyncIterator[None]]:
+    """Создать недостающие зависимости при старте и закрыть свои при остановке."""
+
+    async def context(app: web.Application) -> AsyncIterator[None]:
+        settings = app[SETTINGS]
+        owned: list[Any] = []
+        if auth is None:
+            store = AuthStore(settings.mini_app_db_path)
+            await store.init()
+            owned.append(store)
+            app[AUTH] = store
+        try:
+            yield
+        finally:
+            for item in reversed(owned):
+                close = getattr(item, "close", None) or getattr(item, "aclose")
+                await close()
+
+    return context
+
+
 def create_app(
-    settings: WebSettings, *, max_body: int = MAX_BODY_BYTES
+    settings: WebSettings,
+    *,
+    auth: Any | None = None,
+    max_body: int = MAX_BODY_BYTES,
 ) -> web.Application:
     app = web.Application(
         middlewares=[
@@ -134,6 +163,10 @@ def create_app(
         client_max_size=max_body,
     )
     app[SETTINGS] = settings
+    if auth is not None:
+        app[AUTH] = auth
+    app.cleanup_ctx.append(_resources(auth))
     app.router.add_get("/health", health)
     app.router.add_get("/api/health", health)
+    setup_routes(app)
     return app

@@ -469,6 +469,15 @@ class WebSettings(BaseModel):
 
 Критерий: тесты зеленые.
 
+Выполнено:
+
+- [x] `sessions.Visibility`: сессия видна при подписке на нее или на
+  корень, активной сессии или `notify_all`;
+- [x] `routes/permissions.py`: список pending (видимые сессии и запросы,
+  которые бот отправил этому пользователю), ответ `once | always | reject`,
+  404 для решенного или чужого запроса, `permission_messages` только читаются;
+- [x] `tests/test_permissions_api.py` зеленый.
+
 ---
 
 ## Этап 10. API сервиса

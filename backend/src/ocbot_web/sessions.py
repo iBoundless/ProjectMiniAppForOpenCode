@@ -271,3 +271,61 @@ async def user_subscriptions(store: Store, user_id: int) -> list[str]:
     rows = await cursor.fetchall()
     await cursor.close()
     return [row[0] for row in rows]
+
+
+MAX_ANCESTORS = 8
+
+
+class Visibility:
+    """Какие сессии видит пользователь: подписка на сессию или ее корень,
+    активная сессия или `notify_all`. Результаты кэшируются на объект."""
+
+    def __init__(self, client: Any, store: Store, user_id: int) -> None:
+        self.client = client
+        self.store = store
+        self.user_id = user_id
+        self._chain: dict[str, list[str]] = {}
+        self._own: set[str] | None = None
+        self._all: bool | None = None
+
+    async def _load(self) -> None:
+        if self._own is not None:
+            return
+        chat = await self.store.get_chat(self.user_id)
+        self._all = chat.notify_all
+        own = set(await user_subscriptions(self.store, self.user_id))
+        if chat.active_session:
+            own.add(chat.active_session)
+        self._own = own
+
+    async def chain(self, session_id: str) -> list[str]:
+        """Сессия и ее предки до корня (без сетевых ошибок наружу)."""
+        if session_id in self._chain:
+            return self._chain[session_id]
+        result = [session_id]
+        current = session_id
+        for _ in range(MAX_ANCESTORS):
+            try:
+                info = await self.client.get_session(current)
+            except Exception:  # noqa: BLE001 - нет данных, значит без предков
+                break
+            if not info.parent_id or info.parent_id in result:
+                break
+            current = info.parent_id
+            result.append(current)
+        self._chain[session_id] = result
+        return result
+
+    async def can_see(self, session_id: str) -> bool:
+        await self._load()
+        if self._all:
+            return True
+        assert self._own is not None
+        if session_id in self._own:
+            return True
+        return any(item in self._own for item in await self.chain(session_id))
+
+    def remember(self, session_id: str) -> None:
+        """Сессия, созданная пользователем, видна сразу."""
+        if self._own is not None:
+            self._own.add(session_id)

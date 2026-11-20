@@ -2,7 +2,9 @@
 
 Веб-панель управления OpenCode: Telegram Mini App и PWA для iPhone.
 
-Проект дополняет Telegram-бота `opencode-telegram-bot`, не заменяя его:
+Проект дополняет Telegram-бота
+[opencode-telegram-bot](https://github.com/iBoundless/opencode-telegram-bot),
+не заменяя его:
 бот остается каналом голосовых сообщений, уведомлений и подтверждений,
 а Mini App дает полноценный интерфейс для сессий, проектов, моделей и
 управления сервисом.

@@ -12,7 +12,7 @@ from pydantic import BaseModel, Field, field_validator
 
 from ..auth import login_required, user_id
 from ..errors import ApiError, json_response, read_model, validation
-from ..keys import CLIENT, DRAFTS, STORE
+from ..keys import CLIENT, DRAFTS, HUB, STORE
 from ..sessions import (
     MAX_LIMIT,
     check_directory,
@@ -132,6 +132,9 @@ async def create_session(request: web.Request) -> web.Response:
         title=body.title,
     )
     log.info("session %s created by user %s", session.id, uid)
+    hub = request.app.get(HUB)
+    if hub is not None:
+        hub.remember(uid, session.id)
     projects = {project.id: project for project in await client.list_projects()}
     return json_response(
         serialize_session(session, projects, subscribed=True, active=True), status=201

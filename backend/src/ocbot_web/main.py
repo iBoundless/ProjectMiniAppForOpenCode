@@ -27,6 +27,8 @@ def configure_logging(settings: WebSettings, stream=None) -> logging.Handler:
     handler.addFilter(SecretRedactionFilter(secrets))
     root = logging.getLogger()
     root.setLevel(os.environ.get("MINI_APP_LOG_LEVEL", "INFO").upper())
+    # httpx пишет каждый запрос к OpenCode (включая долгий SSE) на INFO.
+    logging.getLogger("httpx").setLevel(logging.WARNING)
     root.handlers[:] = [handler]
     return handler
 

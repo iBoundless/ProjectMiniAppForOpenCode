@@ -287,6 +287,7 @@ class Visibility:
         self._chain: dict[str, list[str]] = {}
         self._own: set[str] | None = None
         self._all: bool | None = None
+        self._remembered: set[str] = set()
 
     async def _load(self) -> None:
         if self._own is not None:
@@ -296,6 +297,7 @@ class Visibility:
         own = set(await user_subscriptions(self.store, self.user_id))
         if chat.active_session:
             own.add(chat.active_session)
+        own |= self._remembered
         self._own = own
 
     async def chain(self, session_id: str) -> list[str]:
@@ -325,7 +327,13 @@ class Visibility:
             return True
         return any(item in self._own for item in await self.chain(session_id))
 
+    def refresh(self) -> None:
+        """Перечитать подписки при следующей проверке; цепочки предков остаются."""
+        self._own = None
+        self._all = None
+
     def remember(self, session_id: str) -> None:
         """Сессия, созданная пользователем, видна сразу."""
+        self._remembered.add(session_id)
         if self._own is not None:
             self._own.add(session_id)

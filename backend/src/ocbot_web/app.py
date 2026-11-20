@@ -25,7 +25,18 @@ from .errors import (
     error_response,
     json_response,
 )
-from .keys import AUTH, CLIENT, DRAFTS, RESTART_LOCK, SERVICE, SETTINGS, STORE
+from .events import HEARTBEAT_SECONDS, EventHub
+from .keys import (
+    AUTH,
+    CLIENT,
+    DRAFTS,
+    HEARTBEAT,
+    HUB,
+    RESTART_LOCK,
+    SERVICE,
+    SETTINGS,
+    STORE,
+)
 from .routes import setup_routes
 from .sessions import DraftStore
 
@@ -171,13 +182,26 @@ def _resources(
                     app[key] = item
             if app.get(SERVICE) is None:
                 app[SERVICE] = make_service(app)
-            yield
+            if app.get(HUB) is None:
+                app[HUB] = EventHub(app[CLIENT], app[STORE])
+            hub = app[HUB]
+            hub.start()
+            try:
+                yield
+            finally:
+                await hub.stop()
         finally:
             for item in reversed(owned):
                 close = getattr(item, "close", None) or getattr(item, "aclose")
                 await close()
 
     return context
+
+
+async def _close_streams(app: web.Application) -> None:
+    hub = app.get(HUB)
+    if hub is not None:
+        hub.close_all()
 
 
 def create_app(
@@ -187,6 +211,8 @@ def create_app(
     store: Any | None = None,
     client: Any | None = None,
     service: Any | None = None,
+    hub: Any | None = None,
+    heartbeat: float = HEARTBEAT_SECONDS,
     max_body: int = MAX_BODY_BYTES,
 ) -> web.Application:
     """Зависимости, не переданные явно, создаются при старте приложения."""
@@ -206,9 +232,13 @@ def create_app(
             app[key] = value
     if service is not None:
         app[SERVICE] = service
+    if hub is not None:
+        app[HUB] = hub
+    app[HEARTBEAT] = heartbeat
     app[DRAFTS] = DraftStore()
     app[RESTART_LOCK] = asyncio.Lock()
     app.cleanup_ctx.append(_resources(provided))
+    app.on_shutdown.append(_close_streams)
     app.router.add_get("/health", health)
     app.router.add_get("/api/health", health)
     setup_routes(app)

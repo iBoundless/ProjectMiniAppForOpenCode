@@ -1,0 +1,30 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+*.db
+*.db-shm
+*.db-wal
+
+# Node
+node_modules/
+dist/
+.vite/
+coverage/
+playwright-report/
+
+# Secrets and local env
+.env
+.env.*
+!.env.example
+
+# Local models and caches
+.models/
+.cache/
+
+# OS and logs
+.DS_Store
+*.log

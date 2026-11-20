@@ -1,0 +1,19 @@
+[Unit]
+Description=OpenCode Mini App
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=/opt/opencode-miniapp/backend
+EnvironmentFile=%h/.config/opencode/miniapp.env
+ExecStart=/opt/opencode-miniapp/backend/.venv/bin/python -m ocbot_web.main
+Restart=always
+RestartSec=5
+TimeoutStopSec=15
+KillMode=mixed
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=default.target

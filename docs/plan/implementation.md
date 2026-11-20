@@ -407,6 +407,13 @@ class WebSettings(BaseModel):
 
 Критерий: тесты зеленые.
 
+Выполнено:
+
+- [x] `routes/catalog.py`: `GET /api/projects` (по `time.active`),
+  `GET /api/models?directory=` (без выключенных, дедупликация по
+  provider/model, сортировка), `GET /api/agents?directory=` (без скрытых);
+- [x] `tests/test_catalog.py` зеленый.
+
 ---
 
 ## Этап 8. Уведомления и подписки

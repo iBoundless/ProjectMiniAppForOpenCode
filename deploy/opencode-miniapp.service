@@ -1,3 +1,7 @@
+# Пользовательский юнит (systemctl --user), как у opencode-telegram-bot:
+#   install -m 644 deploy/opencode-miniapp.service ~/.config/systemd/user/
+#   systemctl --user daemon-reload
+#   systemctl --user enable --now opencode-miniapp
 [Unit]
 Description=OpenCode Mini App
 After=network-online.target
@@ -12,6 +16,8 @@ Restart=always
 RestartSec=5
 TimeoutStopSec=15
 KillMode=mixed
+NoNewPrivileges=yes
+UMask=0077
 StandardOutput=journal
 StandardError=journal
 

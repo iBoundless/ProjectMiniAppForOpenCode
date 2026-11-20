@@ -1,0 +1,10 @@
+# Порт панели доступен только с машины, где работает Caddy.
+# Замените адреса на свои; проверка: nft -c -f <файл>; применение: nft -f <файл>.
+table inet miniapp {
+	chain input {
+		type filter hook input priority 0; policy accept;
+		tcp dport 8080 ip saddr 192.0.2.20 accept
+		tcp dport 8080 iif "lo" accept
+		tcp dport 8080 drop
+	}
+}

@@ -755,6 +755,18 @@ panel.example.com {
 Критерий: `https://panel.example.com/health` отвечает, OpenCode наружу
 недоступен.
 
+Выполнено:
+
+- [x] DNS `panel.example.com` резолвится (проверено с этого сервера);
+- [x] `deploy/Caddyfile.example` (`flush_interval -1` для SSE),
+  `deploy/opencode-miniapp.service` (пользовательский юнит, как у бота),
+  `deploy/miniapp.env.example`, `deploy/nftables-miniapp.example`;
+- [ ] на `caddy-host`: маршрут в Caddyfile, `caddy validate`, reload,
+  проверка HTTPS и `/health` - требует доступа к другой машине;
+- [ ] на этом сервере: правило nftables для `8080` только с Caddy,
+  установка и запуск юнита `opencode-miniapp` - изменение хоста, выполнять
+  после подтверждения владельца (команды в `docs/operations.md`).
+
 ---
 
 ## Этап 18. Тесты и качество

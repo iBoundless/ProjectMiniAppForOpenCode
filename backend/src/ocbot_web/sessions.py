@@ -256,3 +256,18 @@ class DraftStore:
     def __len__(self) -> int:
         self._purge()
         return len(self._items)
+
+
+async def user_subscriptions(store: Store, user_id: int) -> list[str]:
+    """ID сессий, на которые подписан чат пользователя.
+
+    В `Store` бота нет такого метода, поэтому читаем таблицу `subscriptions`
+    напрямую, только SELECT.
+    """
+    cursor = await store._connection.execute(
+        "SELECT session_id FROM subscriptions WHERE chat_id = ? ORDER BY session_id",
+        (user_id,),
+    )
+    rows = await cursor.fetchall()
+    await cursor.close()
+    return [row[0] for row in rows]

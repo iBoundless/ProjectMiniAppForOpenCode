@@ -437,6 +437,13 @@ class WebSettings(BaseModel):
 
 Критерий: тесты зеленые, бот использует те же строки.
 
+Выполнено:
+
+- [x] `routes/settings.py`: подписка и отписка через `Store.subscribe` /
+  `unsubscribe`, `GET`/`POST /api/settings/notifications` (только
+  `notify_all`, список подписок читается из таблицы бота только SELECT);
+- [x] `tests/test_settings_api.py` зеленый, изменения видны через `Store`.
+
 ---
 
 ## Этап 9. Запросы прав

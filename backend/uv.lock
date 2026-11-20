@@ -461,6 +461,7 @@ version = "0.1.0"
 source = { editable = "." }
 dependencies = [
     { name = "aiohttp" },
+    { name = "aiosqlite" },
     { name = "ocbot" },
     { name = "pydantic" },
 ]
@@ -474,6 +475,7 @@ dev = [
 [package.metadata]
 requires-dist = [
     { name = "aiohttp", specifier = ">=3.9" },
+    { name = "aiosqlite", specifier = ">=0.20" },
     { name = "ocbot", git = "https://github.com/iBoundless/opencode-telegram-bot?rev=cbec8b93c5ababbc59f19b86c2e1e1da977e3a30" },
     { name = "pydantic", specifier = ">=2.7" },
 ]

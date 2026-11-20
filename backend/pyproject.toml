@@ -5,6 +5,7 @@ description = "OpenCode Mini App backend"
 requires-python = ">=3.12,<3.13"
 dependencies = [
     "aiohttp>=3.9",
+    "aiosqlite>=0.20",
     "pydantic>=2.7",
     # Коммит бота, на который опирается Mini App. Обновлять осознанно.
     "ocbot @ git+https://github.com/iBoundless/opencode-telegram-bot@cbec8b93c5ababbc59f19b86c2e1e1da977e3a30",

@@ -197,6 +197,15 @@ class WebSettings(BaseModel):
 
 Критерий: `uv run pytest tests/test_config.py -q` зеленый.
 
+Выполнено:
+
+- [x] `config.py`: `WebSettings.from_env`, секреты с `repr=False`,
+  OpenCode только на локальном адресе, пароль из env или `service.json`;
+- [x] `errors.py`: единый формат ошибок и разбор JSON по схеме;
+- [x] `keys.py`: ключи зависимостей приложения;
+- [x] `aiosqlite` для `mini_app.db`;
+- [x] `tests/test_config.py` зеленый.
+
 ---
 
 ## Этап 3. Приложение aiohttp и `/health`

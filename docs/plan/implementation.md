@@ -236,6 +236,15 @@ class WebSettings(BaseModel):
 
 Критерий: тесты зеленые, ручной `curl /health` работает.
 
+Выполнено:
+
+- [x] `create_app` с middleware: журнал без query string, JSON-ошибки,
+  лимит тела (64 КБ), проверка `Origin` для изменяющих методов;
+- [x] `GET /health` (и `/api/health`);
+- [x] `main.py`: `web.run_app` без access log aiohttp, логи с вычисткой
+  секретов;
+- [x] `tests/test_health.py` зеленый, ручной `curl /health` отвечает.
+
 ---
 
 ## Этап 4. Авторизация Telegram

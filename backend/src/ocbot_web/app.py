@@ -12,6 +12,7 @@ from urllib.parse import urlsplit
 from aiohttp import web
 from ocbot.opencode import ApiError as OpencodeApiError
 from ocbot.opencode import OpencodeClient, OpencodeUnavailable, SessionNotFound
+from ocbot.opencode.service import ServiceController
 from ocbot.store import Store
 
 from . import __version__
@@ -24,7 +25,7 @@ from .errors import (
     error_response,
     json_response,
 )
-from .keys import AUTH, CLIENT, DRAFTS, SETTINGS, STORE
+from .keys import AUTH, CLIENT, DRAFTS, RESTART_LOCK, SERVICE, SETTINGS, STORE
 from .routes import setup_routes
 from .sessions import DraftStore
 
@@ -142,6 +143,11 @@ async def _open_client(settings: WebSettings) -> OpencodeClient:
     return OpencodeClient(settings.opencode_url, settings.opencode_password)
 
 
+def make_service(app: web.Application) -> ServiceController:
+    """WebSettings совместим с ocbot Settings по opencode_bin и opencode_url."""
+    return ServiceController(app[CLIENT], app[SETTINGS])  # type: ignore[arg-type]
+
+
 FACTORIES: dict[web.AppKey[Any], Callable[[WebSettings], Awaitable[Any]]] = {
     AUTH: _open_auth,
     STORE: _open_store,
@@ -163,6 +169,8 @@ def _resources(
                     item = await factory(settings)
                     owned.append(item)
                     app[key] = item
+            if app.get(SERVICE) is None:
+                app[SERVICE] = make_service(app)
             yield
         finally:
             for item in reversed(owned):
@@ -178,6 +186,7 @@ def create_app(
     auth: Any | None = None,
     store: Any | None = None,
     client: Any | None = None,
+    service: Any | None = None,
     max_body: int = MAX_BODY_BYTES,
 ) -> web.Application:
     """Зависимости, не переданные явно, создаются при старте приложения."""
@@ -195,7 +204,10 @@ def create_app(
     for key, value in provided.items():
         if value is not None:
             app[key] = value
+    if service is not None:
+        app[SERVICE] = service
     app[DRAFTS] = DraftStore()
+    app[RESTART_LOCK] = asyncio.Lock()
     app.cleanup_ctx.append(_resources(provided))
     app.router.add_get("/health", health)
     app.router.add_get("/api/health", health)

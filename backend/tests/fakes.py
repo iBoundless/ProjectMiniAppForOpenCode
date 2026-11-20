@@ -208,3 +208,29 @@ def permission(request_id: str, session_id: str, action: str = "shell") -> Permi
             "message": "run ls",
         }
     )
+
+
+class FakeService:
+    """Интерфейс ocbot.opencode.service.ServiceController."""
+
+    def __init__(self, opencode: FakeOpencode) -> None:
+        self.opencode = opencode
+        self.restarts = 0
+        self.restart_ok = True
+        self.url = "http://127.0.0.1:49374"
+
+    async def status(self):
+        from ocbot.opencode.service import ServiceStatus
+
+        try:
+            info = await self.opencode.info()
+        except OpencodeUnavailable:
+            return ServiceStatus(url=self.url, running=False)
+        busy = sum(1 for s in self.opencode.sessions.values() if s.time.is_busy())
+        return ServiceStatus(
+            url=self.url, running=True, version=info["version"], busy_count=busy
+        )
+
+    async def restart(self) -> bool:
+        self.restarts += 1
+        return self.restart_ok

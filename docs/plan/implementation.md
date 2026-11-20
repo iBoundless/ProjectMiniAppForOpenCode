@@ -502,6 +502,15 @@ class WebSettings(BaseModel):
 
 Критерий: тесты зеленые.
 
+Выполнено:
+
+- [x] `routes/service.py`: `GET /api/service/status` (running, version,
+  url, busy_count, restarting), `POST /api/service/restart` только с
+  `confirm: true`, один перезапуск за раз (409), таймаут подъема 503;
+- [x] `ServiceController` бота создается при старте (`WebSettings`
+  совместим по `opencode_bin` и `opencode_url`), хост не перезапускается;
+- [x] `tests/test_service_api.py` зеленый.
+
 ---
 
 ## Этап 11. SSE

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import asyncio
 from typing import Any
 
 from aiohttp import web
@@ -17,6 +18,7 @@ AUTH = web.AppKey("auth", Any)
 SERVICE = web.AppKey("service", Any)
 HUB = web.AppKey("hub", Any)
 DRAFTS = web.AppKey("drafts", Any)
+RESTART_LOCK = web.AppKey("restart_lock", asyncio.Lock)
 
 # Сессия авторизации текущего запроса (auth.AuthSession).
 AUTH_SESSION = web.RequestKey("auth_session", Any)

@@ -371,6 +371,17 @@ class WebSettings(BaseModel):
 
 Критерий: тесты зеленые.
 
+Выполнено:
+
+- [x] `sessions.py`: сериализация, список корневых сессий с фильтром,
+  пагинацией и подпиской, карточка с последним текстом, создание задачи
+  через `create_bot_session` (или те же шаги с `agent`), `DraftStore`
+  для черновиков занятой сессии;
+- [x] `routes/sessions.py`: список, карточка, создание, prompt (409 с
+  `draft_id`, `queue`/`steer`), interrupt, удаление с `confirm=true`;
+- [x] `tests/fakes.py`: фейковый OpenCode; `tests/test_sessions_api.py`
+  зеленый.
+
 ---
 
 ## Этап 7. Проекты, модели, агенты

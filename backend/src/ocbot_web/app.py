@@ -11,7 +11,8 @@ from urllib.parse import urlsplit
 
 from aiohttp import web
 from ocbot.opencode import ApiError as OpencodeApiError
-from ocbot.opencode import OpencodeUnavailable, SessionNotFound
+from ocbot.opencode import OpencodeClient, OpencodeUnavailable, SessionNotFound
+from ocbot.store import Store
 
 from . import __version__
 from .auth import AuthStore
@@ -23,8 +24,9 @@ from .errors import (
     error_response,
     json_response,
 )
-from .keys import AUTH, SETTINGS
+from .keys import AUTH, CLIENT, DRAFTS, SETTINGS, STORE
 from .routes import setup_routes
+from .sessions import DraftStore
 
 log = logging.getLogger(__name__)
 
@@ -124,20 +126,43 @@ async def health(request: web.Request) -> web.Response:
     )
 
 
+async def _open_auth(settings: WebSettings) -> AuthStore:
+    store = AuthStore(settings.mini_app_db_path)
+    await store.init()
+    return store
+
+
+async def _open_store(settings: WebSettings) -> Store:
+    store = Store(settings.ocbot_db_path)
+    await store.init()
+    return store
+
+
+async def _open_client(settings: WebSettings) -> OpencodeClient:
+    return OpencodeClient(settings.opencode_url, settings.opencode_password)
+
+
+FACTORIES: dict[web.AppKey[Any], Callable[[WebSettings], Awaitable[Any]]] = {
+    AUTH: _open_auth,
+    STORE: _open_store,
+    CLIENT: _open_client,
+}
+
+
 def _resources(
-    auth: Any | None,
+    provided: dict[web.AppKey[Any], Any],
 ) -> Callable[[web.Application], AsyncIterator[None]]:
     """Создать недостающие зависимости при старте и закрыть свои при остановке."""
 
     async def context(app: web.Application) -> AsyncIterator[None]:
         settings = app[SETTINGS]
         owned: list[Any] = []
-        if auth is None:
-            store = AuthStore(settings.mini_app_db_path)
-            await store.init()
-            owned.append(store)
-            app[AUTH] = store
         try:
+            for key, factory in FACTORIES.items():
+                if provided.get(key) is None:
+                    item = await factory(settings)
+                    owned.append(item)
+                    app[key] = item
             yield
         finally:
             for item in reversed(owned):
@@ -151,8 +176,11 @@ def create_app(
     settings: WebSettings,
     *,
     auth: Any | None = None,
+    store: Any | None = None,
+    client: Any | None = None,
     max_body: int = MAX_BODY_BYTES,
 ) -> web.Application:
+    """Зависимости, не переданные явно, создаются при старте приложения."""
     app = web.Application(
         middlewares=[
             access_log_middleware,
@@ -163,9 +191,12 @@ def create_app(
         client_max_size=max_body,
     )
     app[SETTINGS] = settings
-    if auth is not None:
-        app[AUTH] = auth
-    app.cleanup_ctx.append(_resources(auth))
+    provided = {AUTH: auth, STORE: store, CLIENT: client}
+    for key, value in provided.items():
+        if value is not None:
+            app[key] = value
+    app[DRAFTS] = DraftStore()
+    app.cleanup_ctx.append(_resources(provided))
     app.router.add_get("/health", health)
     app.router.add_get("/api/health", health)
     setup_routes(app)

@@ -88,3 +88,29 @@ async def login(client, user_id: int = OWNER_ID) -> dict[str, str]:
         {"id": user_id, "first_name": "Test"}, app[SETTINGS].session_ttl
     )
     return cookie_header(token)
+
+
+@pytest.fixture
+def opencode():
+    from fakes import FakeOpencode
+
+    return FakeOpencode()
+
+
+@pytest.fixture
+async def bot_store(settings: WebSettings):
+    """Настоящий Store бота на временной базе."""
+    from ocbot.store import Store
+
+    store = Store(settings.ocbot_db_path)
+    await store.init()
+    yield store
+    await store.close()
+
+
+@pytest.fixture
+async def panel(api, opencode, bot_store):
+    """Клиент приложения с фейковым OpenCode и заголовком Cookie владельца."""
+    client = await api(client=opencode, store=bot_store)
+    headers = await login(client)
+    return client, headers

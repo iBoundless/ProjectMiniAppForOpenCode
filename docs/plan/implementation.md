@@ -700,6 +700,17 @@ class WebSettings(BaseModel):
 
 Критерий: собранный frontend открывается локально.
 
+Выполнено:
+
+- [x] `static.py`: `frontend/dist` (или `MINI_APP_STATIC_DIR`), `/` и
+  неизвестные пути -> `index.html` (no-cache), `/assets/*` с
+  `immutable`, `sw.js` и manifest no-cache, защита от выхода за каталог;
+- [x] `/api/*`, `/login`, `/health` статикой не перехватываются (JSON 404);
+- [x] `scripts/build.sh` (`--check` добавляет lint и тесты) и
+  `scripts/dev.sh` (backend + Vite proxy);
+- [x] `tests/test_static.py` зеленый; собранный frontend открывается с
+  локального backend (`curl /`, assets, SPA-путь).
+
 ---
 
 ## Этап 16. Интеграция с ботом

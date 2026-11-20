@@ -32,6 +32,7 @@ class WebSettings(BaseModel):
     mini_app_url: str = ""
     init_data_max_age: int = Field(default=86400, gt=0)
     session_ttl: int = Field(default=86400, gt=0)
+    static_dir: Path | None = None
 
     @field_validator("allowed_user_ids", mode="before")
     @classmethod
@@ -52,10 +53,10 @@ class WebSettings(BaseModel):
             raise ValueError("OpenCode должен быть локальным (127.0.0.1)")
         return value.rstrip("/")
 
-    @field_validator("opencode_service_json", "ocbot_db_path", "mini_app_db_path")
+    @field_validator("opencode_service_json", "ocbot_db_path", "mini_app_db_path", "static_dir")
     @classmethod
-    def _expand(cls, value: Path) -> Path:
-        return Path(value).expanduser()
+    def _expand(cls, value: Path | None) -> Path | None:
+        return Path(value).expanduser() if value is not None else None
 
     @field_validator("mini_app_url")
     @classmethod
@@ -93,6 +94,7 @@ class WebSettings(BaseModel):
             "mini_app_url": "MINI_APP_URL",
             "init_data_max_age": "MINI_APP_INIT_DATA_MAX_AGE",
             "session_ttl": "MINI_APP_SESSION_TTL",
+            "static_dir": "MINI_APP_STATIC_DIR",
         }
         for field, name in optional.items():
             raw = env.get(name)

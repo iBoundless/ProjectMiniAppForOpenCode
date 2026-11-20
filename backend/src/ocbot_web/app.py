@@ -39,6 +39,7 @@ from .keys import (
 )
 from .routes import setup_routes
 from .sessions import DraftStore
+from .static import setup_static
 
 log = logging.getLogger(__name__)
 
@@ -242,4 +243,6 @@ def create_app(
     app.router.add_get("/health", health)
     app.router.add_get("/api/health", health)
     setup_routes(app)
+    # Последним: перехватывает только то, что не совпало с API.
+    setup_static(app, settings.static_dir)
     return app
